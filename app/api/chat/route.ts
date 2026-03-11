@@ -5,6 +5,8 @@ import {
   UIMessage,
 } from 'ai'
 import { createGroq } from '@ai-sdk/groq'
+import fs from 'fs/promises'
+import path from 'path'
 
 export const maxDuration = 30
 
@@ -39,9 +41,25 @@ Estilo de respuesta:
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
 
+  let knowledgeContext = ''
+  try {
+    const filePath = path.join(process.cwd(), 'conocimiento.txt')
+    const fileContent = await fs.readFile(filePath, 'utf8')
+    if (fileContent.trim()) {
+      knowledgeContext = `\n\n--- INFORMACIÓN DE CONTEXTO ADICIONAL ---\n${fileContent}\n--- FIN DE LA INFORMACIÓN DE CONTEXTO ---\n` +
+      `\nINSTRUCCIONES ESTRICTAS PARA RESPONDER:\n` +
+      `1. Tu máxima prioridad es usar la "INFORMACIÓN DE CONTEXTO ADICIONAL" proporcionada arriba para responder a la pregunta del usuario. \n` +
+      `2. Basate ESTRICTAMENTE en la información del contexto. NO inventes datos, NO asumas información que no esté explícitamente escrita ahí.\n` +
+      `3. Si la respuesta a la pregunta del usuario NO se encuentra en la información de contexto y tampoco en tu conocimiento general de Jujutsu Kaisen, di claramente (con tu personalidad de Gojo) que no tienes esa información o que aún no te han enseñado eso. \n` +
+      `4. Mantén tu personalidad de Gojo Satoru en todo momento mientras das la información exacta del texto.`
+    }
+  } catch (error) {
+    console.error('No se pudo leer el archivo de conocimiento:', error)
+  }
+
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
-    system: GOJO_SYSTEM_PROMPT,
+    system: GOJO_SYSTEM_PROMPT + knowledgeContext,
     messages: await convertToModelMessages(messages),
     abortSignal: req.signal,
   })

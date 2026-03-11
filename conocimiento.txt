@@ -1,0 +1,7 @@
+Escribe aquí el texto que quieres que Gojo conozca y utilice para responder.
+Puedes pegar guiones, menús, reglas de tu negocio, información personal, etc.
+
+Ejemplo:
+- "Gojo, el creador de esta página es el usuario Supremo."
+- "El color favorito de la tienda es el rojo."
+- "Si preguntan por los precios, di que todo cuesta 100 dólares."
